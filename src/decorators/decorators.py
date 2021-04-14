@@ -17,6 +17,20 @@ def benchmark(tag, should_print_immediate=True, is_recursive=False):
     return decorator
 
 
+def catch_exception(print_trace=False):
+    def decorator(func):
+        @functools.wraps(func)
+        def wrapper(*args, **kwargs):
+            try:
+                return func(*args, **kwargs)
+            except Exception as e:
+                if print_trace:
+                    traceback.print_exc(e)
+                return None
+        return wrapper
+    return decorator
+
+
 def __decorator_benchmark_recursive(func,tag, should_print_immediate):
     count=0
     start = time.time()
@@ -60,19 +74,6 @@ def __add_time(tag:str, exec_time):
         value = times[tag]
     times[tag] = value + exec_time
 
-
-def catch_exception(func):
-    @functools.wraps(func)
-    def wrapper(*args, **kwargs):
-        try:
-            value = func(*args, **kwargs)
-        except Exception as e:
-            traceback.print_exc(e)
-            return None
-
-        return value
-
-    return wrapper
 
 
 def __print_tagged_benchmark_info(tag:str):

