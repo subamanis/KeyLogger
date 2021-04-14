@@ -1,9 +1,9 @@
 import pyautogui
-import decorators.decorators
+from decorators.decorators import benchmark
 from .namegenerator import get_screenshot_name
 
 
-@decorators.decorators.benchmark("screenshot")
+@benchmark("screenshot")
 def take_screenshot():
     myScreenshot = pyautogui.screenshot()
     myScreenshot.save(get_screenshot_name())
