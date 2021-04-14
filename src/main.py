@@ -2,6 +2,7 @@ from log import logger, screenshot
 from pynput import keyboard
 from pynput.keyboard import Key, Listener, KeyCode, Controller
 from countdown import Countdown
+from log import camcapture
 from decorators.decorators import catch_exception
 
 S_code = 83
@@ -120,7 +121,12 @@ def __take_screenshot():
     global is_idle
     if not is_idle:
         screenshot.take_screenshot()
-        is_idle = True
+
+
+def __make_cam_capture():
+    global is_idle
+    if not is_idle:
+        camcapture.capture_cam_frame()
 
 
 def __exit_safely():
@@ -134,7 +140,8 @@ def __exit_immediately(*args):
 
 def __init_executors():
     logger.init()
-    Countdown.make_and_start("screenshots", 6, __take_screenshot)
+    Countdown.make_and_start("screenshots", 4 * 60, __take_screenshot)
+    Countdown.make_and_start("cam capture", 2.8, __make_cam_capture)
     Countdown.make_and_start("backup logs", 25 * 60, __check_for_new_characters)
 
 
