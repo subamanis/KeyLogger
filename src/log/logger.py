@@ -1,5 +1,4 @@
-from .namegenerator import *
-
+from .namegenerator import get_file_name
 from concurrent.futures._base import Future
 from concurrent.futures.thread import ThreadPoolExecutor
 from threading import Thread
@@ -42,10 +41,6 @@ def __log_to_file_from_thread(buffer:list[str], elements_to_skip:bool, is_dump:b
             count += 1
 
     is_writing = False
-
-
-def __get_dump_file_name() -> str:
-    return dump_path+"logs.txt"
 
 
 def queue_callback(callback:Callable):

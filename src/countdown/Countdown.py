@@ -1,40 +1,37 @@
 from concurrent.futures.thread import ThreadPoolExecutor
 from time import sleep
 from typing import Callable
+from threading import Event
 
 
 _executors:dict[str,ThreadPoolExecutor] = dict()
-_conditions:dict[str,bool] = dict()
+_events:dict[str,Event] = dict()
 
 
-def make_and_start(tag:str, duration:float, callback: Callable[..., None]):
-    global _executors,_conditions
+def make_and_start(tag:str, duration:float, callback: Callable):
+    global _executors
     executor = ThreadPoolExecutor(max_workers=1)
-    _conditions[tag] = True
+    _events[tag] = Event()
     executor.submit(__countdown_repeating, tag, duration, callback)
     _executors[tag] = executor
 
 
 def stop(tag):
     global _executors
-    _conditions[tag] = False
     _executors[tag].shutdown(wait=False,cancel_futures=True)
+    _events[tag].set()
 
 
 def stop_all():
-    global _executors, _conditions
+    global _executors
     for tag in _executors:
-        _conditions[tag] = False
         _executors[tag].shutdown(wait=False,cancel_futures=True)
+        _events[tag].set()
 
 
 def __countdown_repeating(tag:str, time:float, callback:Callable):
-    global _conditions
-    while _conditions[tag]:
-        sleep(time)
-        if _conditions[tag]:
+    event = _events[tag]
+    while not event.is_set():
+        event.wait(time)
+        if not event.is_set():
             callback()
-
-
-
-
