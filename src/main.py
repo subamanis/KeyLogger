@@ -1,7 +1,3 @@
-import asyncio
-import threading
-from time import sleep
-
 from util import utilities
 from logger import logger
 from pynput import keyboard
@@ -18,19 +14,23 @@ is_ctrl_pressed:bool = False
 is_alt_pressed:bool = False
 is_shift_pressed:bool = False
 should_register:bool = True
+is_idle:bool = True
 key_buffer:list[str] = list()
-buffer_capacity:int = 300
+buffer_capacity:int = 15
+elements_to_preserve:int = 3
+
 lang_change_listener:Listener
 _keyboard = Controller()
 
 
 @catch_exception(print_trace=True)
 def on_pressed(key):
-    global key_buffer, is_alt_pressed, is_shift_pressed, is_ctrl_pressed
+    global key_buffer, is_alt_pressed, is_shift_pressed, is_ctrl_pressed, is_idle
     if isinstance(key, KeyCode):
         if is_ctrl_pressed or is_alt_pressed:
             __check_for_special_handling(ord(key.char))
         else:
+            is_idle = False
             if should_register:
                 print(key.char)
                 key_buffer.append(key.char)
@@ -40,17 +40,19 @@ def on_pressed(key):
 
         if should_register:
             if key == Key.space:
+                is_idle = False
                 print(" ")
                 key_buffer.append(" ")
             elif key == Key.backspace:
                 if len(key_buffer) > 0:
                     del key_buffer[-1]
             elif key == Key.enter:
+                is_idle = False
                 print("\n")
                 key_buffer.append("\n")
 
     if len(key_buffer) == buffer_capacity:
-        logger.log_to_file(buffer=key_buffer)
+        __log_buffer()
 
 
 def on_release(key):
@@ -90,26 +92,48 @@ def __check_for_special_handling(unicode):
         elif unicode == S_code:     #start recording and timers again
             should_register = True
         elif unicode == D_code:     #force dump contents of array in file
-            logger.log_to_file(key_buffer)
-            key_buffer = list()
+            __log_buffer(is_dump=True)
         elif unicode == T_code:     #wait for logging to complete if ongoing, and exit
             __exit_safely()
 
 
+def __log_buffer(is_dump:bool=False):
+    global key_buffer, elements_to_preserve
+    if is_dump:
+        logger.log_to_file(buffer=key_buffer, is_dump=is_dump)
+        key_buffer = list()
+    else:
+        new_buffer = key_buffer[len(key_buffer)-elements_to_preserve:]
+        logger.log_to_file(buffer=key_buffer,elements_to_skip=elements_to_preserve)
+        key_buffer = new_buffer
+
+
+def __check_for_new_characters():
+    global is_idle
+
+    if not is_idle or len(key_buffer) == 0:
+        is_idle = True
+        return
+
+    __log_buffer(is_dump=True)
+
+
 def __exit_safely():
-    count = 0
-    while logger.is_writing and count < 5:
-        count += 1
-        sleep(0.1)
     __shutdown_executors()
-    if count == 5:
-        exit(-1)
+    logger.queue_callback(__exit_immediately)
+
+
+def __exit_immediately(*args):
     exit(0)
+
+
+
+
 
 
 def __init_executors():
     logger.init()
-    # Countdown.make_and_start("one", 0.7, lambda : print("ONE callback"))
+    # Countdown.make_and_start("idle checker", 3, __check_for_new_characters)
     # Countdown.make_and_start("two", 1, lambda : print("TWO callback"))
 
 
