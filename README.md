@@ -6,12 +6,26 @@ take screenshots of the screen and capture images from the device's webcam. <br>
 ### Disclaimer: 
 This program was made for educational purposes only and should not be used with any malicious intent
 
-## <u>How to run</u>
+## <ins>Details</ins>
+The program can run in the background even if cmd is closed, and it loggs keystrokes on the machine, 
+but also can take screenshots and webcam captures if the user chooses. He can also specify the 
+time intervals between these tasks. <br>
+The keystrokes are being saved into a buffer (500 characters length)
+and when the limit is reached, almost all of them are being written into a file by a seperate thread 
+(10 of them are being kept, in case the user presses backspace and deletes some of the last ones.)<br>
+The program checks if the machine is idle(no keypresses for 25 minutes) and if so, it stops taking 
+screenshots and webcam captures, until more keypresses happen (support for turning this feature off is coming).<br>
+Features of the program can be controlled by hidden keyboard shortcuts that can, for example, 
+force the program to dump the contents of the buffer into a file immediately)
+
+## <ins>How to run</ins>
 With python installed, download the project and run the following in the command line:
 1) python -m venv C:\\*<path_to_project\>*\venv 
 2) C:\\*<path_to_project\>*\venv\Scripts\activate.bat
 3) pip install -r C:\\*<path_to_project\>*\requirements.txt
 4) pythonw main.py \<*arguments*\>
+
+Commands 1,3 are required only the first time the program is run, after that, use 2,4 only
 
 "pythonw" is launching the app as a GUI app, although we don't have any 
 GUI, this way the app can keep running in the background, even if you close the cmd.
@@ -37,7 +51,13 @@ the flashing light that may light up for one second. <br>
   (no screenshots and not webcam captures, only keystrokes collected)
   <br>
   
-## <u>Limitations</u> <br>
+## <ins>Keyboard shortcut commands</ins> <br>
+- Shift + Ctrl + Alt + P : stops logging everything temporarily
+- Shift + Ctrl + Alt + S : starts again the logging
+- Shift + Ctrl + Alt + D : dumps the contents of the keystroke buffer into the file immediately 
+- Shift + Ctrl + Alt + T : terminates the program (even if it is running on the background)
+  
+## <ins>Limitations</ins> <br>
 - The package used to read the keyboard input makes Windows' keyboard shortcuts unreliable, meaning it is not 
   guarantied that a shortcut like shift+alt will work and change the language 100% of the times it is pressed
   
