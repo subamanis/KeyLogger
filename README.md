@@ -6,7 +6,7 @@ take screenshots of the screen and capture images from the device's webcam. <br>
 ### Disclaimer: 
 This program was made for educational purposes only and should not be used with any malicious intent
 
-##<u>How to run</u>
+## <u>How to run</u>
 With python installed, download the project and run the following in the command line:
 1) python -m venv C:\\*<path_to_project\>*\venv 
 2) C:\\*<path_to_project\>*\venv\Scripts\activate.bat
@@ -16,7 +16,7 @@ With python installed, download the project and run the following in the command
 "pythonw" is launching the app as a GUI app, although we don't have any 
 GUI, this way the app can keep running in the background, even if you close the cmd.
 
-###Arguments <br>
+### Arguments <br>
 -s *interval* <br>
 -w *interval*
 <br> <br>
@@ -28,7 +28,7 @@ If 0 is passed as interval, it gets converted to 1. <br><br>
 **Note**: when a webcam capture is taken, the program makes no attempt to hide
 the flashing light that may light up for one second. <br>
 
-###Examples
+### Examples
 - pythonw main.py -s 5 -w 10 <br>
 (screenshots every 5 mins, webcam captures every 10 mins)
 - pythonw main.py -w <br>
@@ -37,7 +37,7 @@ the flashing light that may light up for one second. <br>
   (no screenshots and not webcam captures, only keystrokes collected)
   <br>
   
-##<u>Limitations</u> <br>
+## <u>Limitations</u> <br>
 - The package used to read the keyboard input makes Windows' keyboard shortcuts unreliable, meaning it is not 
   guarantied that a shortcut like shift+alt will work and change the language 100% of the times it is pressed
   
