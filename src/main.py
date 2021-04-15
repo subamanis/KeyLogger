@@ -3,6 +3,7 @@ from log import logger, screenshot
 from pynput import keyboard
 from pynput.keyboard import Key, Listener, KeyCode, Controller
 from countdown import Countdown
+from util import utilities
 from log import camcapture
 from decorators.decorators import catch_exception
 
@@ -17,6 +18,8 @@ is_shift_pressed:bool = False
 should_register:bool = True
 should_capture_screenshots:bool = False
 should_capture_webcam:bool = False
+screenshot_interval:int = 4
+webcam_capture_interval:int = 17
 is_idle:bool = True
 key_buffer:list[str] = list()
 buffer_capacity:int = 500
@@ -156,13 +159,28 @@ def __shutdown_executors():
 
 
 def __read_program_args():
-    global should_capture_screenshots, should_capture_webcam
+    global should_capture_screenshots, should_capture_webcam, webcam_capture_interval, screenshot_interval
     if len(sys.argv) > 1:
-        for arg in sys.argv:
-            if arg == '-s':
+        count = 1
+        while count < len(sys.argv):
+            if sys.argv[count] == '-s':
+                count += 1
                 should_capture_screenshots = True
-            elif arg == '-w':
+                if count < len(sys.argv):
+                    intval = utilities.as_int(sys.argv[count])
+                    if intval is None: continue
+                    screenshot_interval = 1 if intval < 1 else intval
+            elif sys.argv[count] == '-w':
+                count += 1
                 should_capture_webcam = True
+                if count < len(sys.argv):
+                    intval = utilities.as_int(sys.argv[count])
+                    if intval is None: continue
+                    webcam_capture_interval = 1 if intval < 1 else intval
+            count += 1
+    print('should screens {} with interval {}  ,  should webcam {}  with interval {}'.format(should_capture_screenshots,
+                                                                                             screenshot_interval,
+                                                                                             should_capture_webcam,                                                                                            webcam_capture_interval))
 
 
 
