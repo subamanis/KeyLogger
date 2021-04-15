@@ -5,7 +5,6 @@ from datetime import datetime
 def __get_current_folder() -> str:
     return dump_path + datetime.today().strftime('%b-%d') + '/'
 
-
 def __generate_new_name() -> str:
     global last_name_used
     file_path = __get_current_folder() + datetime.now().strftime('%H-%M-%S') + '.txt'
@@ -41,12 +40,12 @@ def get_cam_capture_name() -> str:
 
 
 def __make_date_folder_if_not_exists():
-    Path(__get_current_folder()).mkdir(exist_ok=True)
+    Path(__get_current_folder()).mkdir(parents=True, exist_ok=True)
 
 def __make_screenshot_folder_if_not_exists():
-    Path(__get_current_folder() + 'screenshots/').mkdir(exist_ok=True)
+    Path(__get_current_folder() + 'screenshots/').mkdir(parents=True, exist_ok=True)
 
 def __make_cam_capture_folder_if_not_exists():
-    Path(__get_current_folder() + 'cam captures/').mkdir(exist_ok=True)
+    Path(__get_current_folder() + 'cam captures/').mkdir(parents=True, exist_ok=True)
 
 
