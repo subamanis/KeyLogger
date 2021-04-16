@@ -1,3 +1,4 @@
+import pathlib
 from pathlib import Path
 from datetime import datetime
 
@@ -11,7 +12,7 @@ def __generate_new_name() -> str:
     last_name_used = file_path
     return file_path
 
-dump_path = "../dumps/"
+dump_path = str(pathlib.Path(__file__).parent.absolute()).replace("\\","/") + "/../../dumps/"
 should_generate_new:bool = True
 last_name_used:str = __generate_new_name()
 times_used:int = 0
@@ -27,7 +28,6 @@ def get_file_name(is_dump:bool=False) -> str:
     else:
         times_used += 1
         return last_name_used
-
 
 def get_screenshot_name() -> str:
     __make_screenshot_folder_if_not_exists()
