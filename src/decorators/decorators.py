@@ -17,7 +17,7 @@ def benchmark(tag, should_print_immediate=True, is_recursive=False):
     return decorator
 
 
-def catch_exception(print_trace=False):
+def catch_exception(print_trace=True):
     def decorator(func):
         @functools.wraps(func)
         def wrapper(*args, **kwargs):

@@ -3,7 +3,7 @@ from decorators.decorators import catch_exception
 from log import namegenerator
 
 
-@catch_exception
+@catch_exception()
 def capture_cam_frame():
     cam:cv2.VideoCapture = cv2.VideoCapture(0)
     ret, frame = cam.read()
