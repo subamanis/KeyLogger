@@ -40,7 +40,7 @@ the default value of 3 minutes is used <br>
 the default value of 17 minutes is used. <br><br>
 If 0 is passed as interval, it gets converted to 1. <br><br>
 **Note**: when a webcam capture is taken, the program makes no attempt to hide
-the flashing light that may light up for one second. <br>
+the flashing light of the camera, that may light up for one second. <br>
 
 ### Examples
 - pythonw main.py -s 5 -w 10 <br>
