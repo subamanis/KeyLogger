@@ -157,11 +157,11 @@ def __init_executors():
     logger.init()
     Countdown.make_and_start("backup logs", 25 * 60, __check_for_new_characters)
     if should_capture_screenshots:
-        Countdown.make_and_start("screenshots", 3, __take_screenshot)
+        Countdown.make_and_start("screenshots", 3 * 60, __take_screenshot)
     if should_capture_webcam:
-        Countdown.make_and_start("cam capture", 5, __make_cam_capture)
+        Countdown.make_and_start("cam capture", 17 * 60, __make_cam_capture)
     if should_capture_screenshots or should_capture_webcam:
-        Countdown.make_and_start("mouse idle", 4, __make_mouse_idle)
+        Countdown.make_and_start("mouse idle", 7.3 * 60, __make_mouse_idle)
 
 
 def __read_program_args():
