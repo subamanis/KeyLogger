@@ -23,7 +23,7 @@ With python installed, download the project and run the following in the command
 1) python -m venv C:\\*<path_to_project\>*\venv 
 2) C:\\*<path_to_project\>*\venv\Scripts\activate.bat
 3) pip install -r C:\\*<path_to_project\>*\requirements.txt
-4) pythonw main.py \<*arguments*\>
+4) pythonw C:\\*<path_to_project\>*\src\main.py \<*arguments*\>
 
 Commands 1,3 are required only the first time the program is run, after that, use 2,4 only
 
