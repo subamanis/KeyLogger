@@ -31,8 +31,8 @@ Commands 1,3 are required only the first time the program is run, after that, us
 GUI, this way the app can keep running in the background, even if you close the cmd.
 
 ### Arguments <br>
--s *interval* <br>
--w *interval*
+-s \<*interval*\> <br>
+-w \<*interval*\>
 <br> <br>
 **-s**: enables screenshots at the interval specified in minutes (integer). If no interval is given,
 the default value of 3 minutes is used <br>
