@@ -52,8 +52,8 @@ the flashing light of the camera, that may light up for one second. <br>
   <br>
   
 ## <ins>Keyboard shortcut commands</ins> <br>
-- Shift + Ctrl + Alt + P : stops logging everything temporarily
-- Shift + Ctrl + Alt + S : starts again the logging
+- Shift + Ctrl + Alt + P : stops logging everything and disables screenshots and webcam captures, temporarily 
+- Shift + Ctrl + Alt + S : starts loggin and capturing again
 - Shift + Ctrl + Alt + D : dumps the contents of the keystroke buffer into the file immediately 
 - Shift + Ctrl + Alt + T : terminates the program (even if it is running on the background)
   
